@@ -1,6 +1,7 @@
 import { signIn, signOut, useSession } from "next-auth/react";
 import { PropsWithChildren, SetStateAction, useEffect, useRef, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 
 const MainLayout = (props: PropsWithChildren) => {
   const { data: sessionData } = useSession();
@@ -8,14 +9,15 @@ const MainLayout = (props: PropsWithChildren) => {
 
   return (
     <>
-      <header className="sticky top-0 bg-slate-800 text-white 
+      <header className="sticky top-0 bg-gradient-to-r from-slate-900 via-slate-700 via-20% to-slate-800 text-white 
           flex flex-row gap-4 justify-center items-center h-12
           box-shadow"
       >
-        <h1 className="text-2xl font-bold ml-4 mr-auto select-none">Shared List</h1>
+        <Link className="text-2xl font-bold ml-4 mr-auto select-none transition hover:text-red-500" href="/">
+          <h1>Shared List</h1>
+        </Link>
         <button
-          className="rounded-full bg-red-500/90 px-4 py-1 
-            font-semibold text-white no-underline transition hover:bg-white/20 mr-3"
+          className="btn-rounded-red mr-3"
           onClick={() => setUserPanelOpen(v => !v)}
         >
           <span className="flex flex-row justify-center items-center gap-2">
@@ -75,14 +77,15 @@ const UserPanel: React.FC<UserPanelProps> = ({ setOpen }) => {
           flex flex-col justify-center items-center
           w-3/4"
       >
-        <div className="bg-slate-800 rounded flex flex-col py-4 px-8 gap-8 w-full justify-center items-center">
+        <div className="bg-slate-800 rounded flex flex-col py-4 px-8 gap-8 w-full text-center justify-center items-center">
           {sessionData &&
             <>
-              <button
+              <Link
                 className={buttonClasses}
+                href="/create"
               >
                 Create List
-              </button>
+              </Link>
               <button
                 className={buttonClasses}
                 onClick={() => signOut()}

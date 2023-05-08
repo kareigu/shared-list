@@ -4,9 +4,16 @@ import Head from "next/head";
 import Link from "next/link";
 
 import MainLayout from "~/components/MainLayout";
+import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
   const { data: sessionData } = useSession();
+
+  const { data } = api.lists.getListsForUser.useQuery(undefined, {
+    enabled: sessionData !== null,
+  });
+
+  console.log(data);
 
   return (
     <>
@@ -39,7 +46,7 @@ const NotSignedInView = () => {
 const YourListsView = () => {
   return (
     <>
-      <h1 className="text-5xl text-left pl-3 w-full font-extrabold tracking-tight text-white sm:text-[5rem]">
+      <h1 className="text-5xl text-left pl-3 w-full font-extrabold select-none tracking-tight text-white sm:text-[5rem]">
         Your Lists
       </h1>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
