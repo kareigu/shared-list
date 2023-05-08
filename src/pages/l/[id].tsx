@@ -5,6 +5,8 @@ import { api } from "~/utils/api";
 import { InfinitySpin } from "react-loader-spinner";
 import Image from "next/image";
 import { useState } from "react";
+import { SubmitHandler, useForm } from "react-hook-form";
+import { useSession } from "next-auth/react";
 
 type Props = {
   id: string,
@@ -26,8 +28,14 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
 }
 
 const ListPage: NextPage<Props> = ({ id }) => {
+  const { data: sessionData } = useSession();
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const { data: list, isLoading, error } = api.lists.getListById.useQuery(id);
+  const { data: list, isLoading, refetch } = api.lists.getListById.useQuery(id, {
+    enabled: sessionData?.user !== null
+  });
+  const updateListItem = api.lists.updateListItem.useMutation();
+
+  console.log(list);
 
   if (isLoading)
     return (
@@ -48,7 +56,7 @@ const ListPage: NextPage<Props> = ({ id }) => {
   return (
     <MainLayout>
       <>
-        {addModalOpen && <AddItemModal setOpen={setAddModalOpen} />}
+        {addModalOpen && <AddItemModal setOpen={setAddModalOpen} listId={id} />}
         <div className="flex flex-col justify-center items-center text-white mt-8 w-full">
           <div className="flex flex-col justify-center items-center w-5/6 bg-white/10 rounded">
             <div className="flex flex-row pl-2 w-full justify-start 
@@ -68,7 +76,40 @@ const ListPage: NextPage<Props> = ({ id }) => {
             {list.items.length === 0 &&
               <div className="h-64 flex flex-col justify-center items-center gap-4 gap-4">
                 <span className="text-2xl font-semibold">No Items Added</span>
-                <button className="btn-rounded-red" onClick={() => setAddModalOpen(true)}>Add Item</button>
+                <button
+                  className="btn-rounded-red"
+                  onClick={() => setAddModalOpen(true)}
+                >
+                  Add Item
+                </button>
+              </div>
+            }
+            {list.items.length > 0 &&
+              <div className="min-h-[15rem] w-full flex flex-col justify-center items-center py-3 px-8 gap-4 gap-4">
+                {list.items.map((item) => (
+                  <div key={item.id} className="w-full flex flex-row gap-2 justify-start items-center">
+                    <input
+                      className="w-5 h-5 bg-white rounded-full text-red-500 
+                        hover:bg-white/50 flex justify-center items-center font-bold text-xl"
+                      type="button"
+                      value={item.completed ? "✓" : "⤫"}
+                      onClick={async () => {
+                        const updated = await updateListItem.mutateAsync({
+                          listItem: item.id,
+                          completed: !item.completed,
+                        });
+                        refetch();
+                      }}
+                    />
+                    <span>{item.text}</span>
+                  </div>
+                ))}
+                <button
+                  className="btn-rounded-red mb-0 mt-auto"
+                  onClick={() => setAddModalOpen(true)}
+                >
+                  Add Item
+                </button>
               </div>
             }
           </div>
@@ -79,10 +120,29 @@ const ListPage: NextPage<Props> = ({ id }) => {
 }
 
 type AddItemModalProps = {
+  listId: string,
   setOpen: (v: boolean) => void,
 }
 
-const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen }) => {
+type FormInputs = {
+  text: string,
+  info?: string,
+}
+
+const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId }) => {
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormInputs>();
+  const createItem = api.lists.createListItem.useMutation();
+
+  const onSubmit: SubmitHandler<FormInputs> = async (values) => {
+    const item = await createItem.mutateAsync({
+      list: listId,
+      text: values.text,
+      info: values.info
+    });
+    console.log(item);
+  }
+
+
   return (
     <>
       <div className="absolute w-full h-full bg-black/30 text-white" />
@@ -92,11 +152,19 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen }) => {
       >
         <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 backdrop-blur w-full flex flex-col py-2 px-4 items-center h-64 rounded">
           <h1 className="text-3xl font-semibold">Add Item</h1>
-          <form className="h-full flex flex-col gap-4 py-4">
-            <input placeholder="Item" className="px-4 py-2 bg-slate-600 text-white rounded-full" />
-            <input placeholder="Extra info (optional)" className="px-4 py-2 bg-slate-600 text-white rounded-full" />
+          <form className="h-full flex flex-col gap-4 py-4" onSubmit={handleSubmit(onSubmit)}>
+            <input
+              placeholder="Item"
+              className="px-4 py-2 bg-slate-600 text-white rounded-full"
+              {...register("text", { required: true })}
+            />
+            <input
+              placeholder="Extra info (optional)"
+              className="px-4 py-2 bg-slate-600 text-white rounded-full"
+              {...register("info")}
+            />
             <div className="flex flex-row mb-1 mt-auto gap-8 justify-center w-full">
-              <button className="btn-rounded-red w-24">Add</button>
+              <input type="submit" className="btn-rounded-red w-24" value="Add" />
               <button className="btn-rounded-red w-24" onClick={() => setOpen(false)}>Cancel</button>
             </div>
           </form>

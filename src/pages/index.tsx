@@ -2,18 +2,13 @@ import { type NextPage } from "next";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
 import Link from "next/link";
+import { InfinitySpin } from "react-loader-spinner";
 
 import MainLayout from "~/components/MainLayout";
 import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
   const { data: sessionData } = useSession();
-
-  const { data } = api.lists.getListsForUser.useQuery(undefined, {
-    enabled: sessionData !== null,
-  });
-
-  console.log(data);
 
   return (
     <>
@@ -44,34 +39,67 @@ const NotSignedInView = () => {
 }
 
 const YourListsView = () => {
+  const { data: sessionData } = useSession();
+
+
+  const { data: lists, isLoading } = api.lists.getListsForUser.useQuery(undefined, {
+    enabled: sessionData !== null,
+  });
+  console.log(lists);
+
+  if (isLoading)
+    return (
+      <InfinitySpin color="white" />
+    )
+
+  if (!lists)
+    return (
+      <h1
+        className="text-4xl text-left pl-3 w-full font-extrabold select-none tracking-tight text-white sm:text-[5rem]"
+      >
+        Error Fetching Lists
+      </h1>
+    )
+
+  if (lists.length === 0)
+    return (
+      <h1
+        className="text-4xl text-left pl-3 w-full font-extrabold select-none tracking-tight text-white sm:text-[5rem]"
+      >
+        No Lists Available
+      </h1>
+    )
+
   return (
     <>
-      <h1 className="text-5xl text-left pl-3 w-full font-extrabold select-none tracking-tight text-white sm:text-[5rem]">
+      <h1
+        className="text-5xl text-left pl-3 w-full font-extrabold select-none tracking-tight text-white sm:text-[5rem]"
+      >
         Your Lists
       </h1>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-8">
-        <Link
-          className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-          href="https://create.t3.gg/en/usage/first-steps"
-          target="_blank"
-        >
-          <h3 className="text-2xl font-bold">First Steps →</h3>
-          <div className="text-lg">
-            Just the basics - Everything you need to know to set up your
-            database and authentication.
-          </div>
-        </Link>
-        <Link
-          className="flex max-w-xs flex-col gap-4 rounded-xl bg-white/10 p-4 text-white hover:bg-white/20"
-          href="https://create.t3.gg/en/introduction"
-          target="_blank"
-        >
-          <h3 className="text-2xl font-bold">Documentation →</h3>
-          <div className="text-lg">
-            Learn more about Create T3 App, the libraries it uses, and how
-            to deploy it.
-          </div>
-        </Link>
+      <div className="grid grid-cols-1 gap-4 w-3/4 sm:grid-cols-2 md:gap-8">
+        {lists.map((list) => (
+          <Link
+            key={list.id}
+            className="flex max-w-xs flex-col gap-4 rounded-xl w-full bg-white/10 p-4 text-white hover:bg-white/20"
+            href={`/l/${list.id}`}
+          >
+            <h3 className="text-2xl font-bold">{list.name} →</h3>
+            <div className="w-full">
+              {list.items.length === 0 &&
+                <span>No items included</span>
+              }
+              {list.items.length > 0 &&
+                list.items.map((item) => (
+                  <div className="flex flex-row justify-center items-center gap-4">
+                    <span>{item.completed}</span>
+                    <span>{item.text}</span>
+                  </div>
+                ))
+              }
+            </div>
+          </Link>
+        ))}
       </div>
     </>
   )

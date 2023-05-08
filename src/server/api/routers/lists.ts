@@ -12,14 +12,31 @@ export const listsRouter = createTRPCRouter({
     .query(({ ctx }) => {
       return ctx.prisma.list.findMany({
         where: {
-          ownerId: ctx.session.user.id,
-          OR: {
-            collaborators: {
-              some: {
-                id: ctx.session.user.id,
+          OR: [
+            { ownerId: ctx.session.user.id },
+            {
+              collaborators: {
+                some: {
+                  id: ctx.session.user.id,
+                }
               }
+            }]
+        },
+        select: {
+          id: true,
+          name: true,
+          items: {
+            select: {
+              text: true,
+              completed: true,
+            },
+            orderBy: {
+              updatedAt: "asc"
             }
           }
+        },
+        orderBy: {
+          updatedAt: "desc"
         }
       })
     }),
@@ -43,7 +60,11 @@ export const listsRouter = createTRPCRouter({
         include: {
           owner: true,
           collaborators: true,
-          items: true,
+          items: {
+            orderBy: {
+              addedAt: "asc",
+            }
+          },
         }
       });
 
@@ -55,4 +76,28 @@ export const listsRouter = createTRPCRouter({
 
       return list;
     }),
+  createListItem: protectedProcedure
+    .input(z.object({ list: z.string(), text: z.string(), info: z.string().optional() }))
+    .mutation(({ input, ctx }) => {
+      return ctx.prisma.listItem.create({
+        data: {
+          listId: input.list,
+          text: input.text,
+          info: input.info,
+          creatorId: ctx.session.user.id,
+        }
+      })
+    }),
+  updateListItem: protectedProcedure
+    .input(z.object({ listItem: z.string(), completed: z.boolean() }))
+    .mutation(({ input, ctx }) => {
+      return ctx.prisma.listItem.update({
+        where: {
+          id: input.listItem,
+        },
+        data: {
+          completed: input.completed
+        }
+      })
+    })
 });

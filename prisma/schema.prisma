@@ -17,10 +17,14 @@ datasource db {
 model ListItem {
   id        String   @id @default(cuid())
   text      String
+  info      String?
   completed Boolean  @default(false)
   addedAt   DateTime @default(now())
+  updatedAt DateTime @updatedAt
   list      List     @relation(fields: [listId], references: [id])
   listId    String
+  creator   User     @relation(fields: [creatorId], references: [id])
+  creatorId String
 }
 
 model List {
@@ -30,6 +34,7 @@ model List {
   ownerId       String
   collaborators User[]     @relation("accessableLists")
   items         ListItem[]
+  updatedAt     DateTime   @updatedAt
 }
 
 model Example {
@@ -66,15 +71,16 @@ model Session {
 }
 
 model User {
-  id              String    @id @default(cuid())
+  id              String     @id @default(cuid())
   name            String?
-  email           String?   @unique
+  email           String?    @unique
   emailVerified   DateTime?
   image           String?
   accounts        Account[]
   sessions        Session[]
-  ownLists        List[]    @relation("owner")
-  accessableLists List[]    @relation("accessableLists")
+  ownLists        List[]     @relation("owner")
+  accessableLists List[]     @relation("accessableLists")
+  ListItem        ListItem[]
 }
 
 model VerificationToken {
