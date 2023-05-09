@@ -81,7 +81,8 @@ const YourListsView = () => {
         {lists.map((list) => (
           <Link
             key={list.id}
-            className="flex max-w-xs flex-col gap-4 rounded-xl w-full bg-white/10 p-4 text-white hover:bg-white/20"
+            className="flex max-w-xs flex-col gap-4 rounded-xl w-full 
+              backdrop-blur bg-white/10 h-52 p-4 text-white hover:bg-white/20"
             href={`/l/${list.id}`}
           >
             <h3 className="text-2xl font-bold">{list.name} →</h3>
@@ -91,9 +92,9 @@ const YourListsView = () => {
               }
               {list.items.length > 0 &&
                 list.items.map((item) => (
-                  <div className="flex flex-row justify-center items-center gap-4">
-                    <span>{item.completed}</span>
-                    <span>{item.text}</span>
+                  <div key={item.id} className="flex flex-row justify-start items-center gap-2">
+                    <span className="text-blue-400">{item.completed ? "✓" : " "}</span>
+                    <span className={item.completed ? "" : "ml-3"}>{item.text}</span>
                   </div>
                 ))
               }

@@ -28,12 +28,14 @@ export const listsRouter = createTRPCRouter({
           name: true,
           items: {
             select: {
+              id: true,
               text: true,
               completed: true,
             },
             orderBy: {
-              updatedAt: "asc"
-            }
+              updatedAt: "desc"
+            },
+            take: 5
           }
         },
         orderBy: {
@@ -103,13 +105,32 @@ export const listsRouter = createTRPCRouter({
           .optional()
       }))
     .mutation(({ input, ctx }) => {
-      return ctx.prisma.listItem.create({
-        data: {
-          listId: input.list,
-          text: input.text,
-          info: input.info,
-          creatorId: ctx.session.user.id,
-        }
+      return ctx.prisma.$transaction(async (tx) => {
+        const listItem = await tx.listItem.create({
+          data: {
+            listId: input.list,
+            text: input.text,
+            info: input.info,
+            creatorId: ctx.session.user.id,
+          }
+        }).catch((e: Error) => e);
+
+        if (listItem instanceof Error)
+          throw new TRPCError({ code: "BAD_REQUEST", message: listItem.message })
+
+        const update = await tx.list.update({
+          where: {
+            id: listItem.listId,
+          },
+          data: {
+            updatedAt: new Date(),
+          }
+        }).catch((e: Error) => e);
+
+        if (update instanceof Error)
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+        return listItem;
       })
     }),
   updateListItem: protectedProcedure
@@ -120,27 +141,63 @@ export const listsRouter = createTRPCRouter({
           id: input.listItem,
         },
         data: {
-          completed: input.completed
+          completed: input.completed,
+          list: {
+            update: {
+              updatedAt: new Date(),
+            }
+          }
         }
       })
     }),
   removeListItem: protectedProcedure
     .input(z.string())
-    .mutation(({ input, ctx }) => {
-      return ctx.prisma.listItem.deleteMany({
-        where: {
-          AND: [
-            { id: input },
-            {
-              list: {
-                OR: [
-                  { ownerId: ctx.session.user.id },
-                  { collaborators: { some: { id: ctx.session.user.id } } }
-                ]
-              }
+    .mutation(async ({ input, ctx }) => {
+      return ctx.prisma.$transaction(
+        async (tx) => {
+          const toRemove = await tx.listItem.findFirst({
+            where: {
+              AND: [
+                { id: input },
+                {
+                  list: {
+                    OR: [
+                      { ownerId: ctx.session.user.id },
+                      { collaborators: { some: { id: ctx.session.user.id } } }
+                    ]
+                  }
+                }
+              ]
+            },
+          });
+
+          if (!toRemove)
+            throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid id or missing permissions" });
+
+          const deleteResult = await tx.listItem.delete({
+            where: {
+              id: toRemove.id,
             }
-          ]
-        }
-      })
+          }).catch((e: Error) => e);
+
+
+          if (deleteResult instanceof Error)
+            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+
+
+          const updateAction = await ctx.prisma.list.update({
+            where: {
+              id: deleteResult.listId,
+            },
+            data: {
+              updatedAt: new Date(),
+            }
+          }).catch((e: Error) => e);
+
+          if (updateAction instanceof Error)
+            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Couldn't update list" });
+
+          return deleteResult;
+        });
     }),
 });

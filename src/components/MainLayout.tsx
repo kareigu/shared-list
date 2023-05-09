@@ -11,7 +11,7 @@ const MainLayout = (props: PropsWithChildren) => {
     <>
       <header className="sticky top-0 bg-gradient-to-r from-slate-900 via-slate-700 via-20% to-slate-800 text-white 
           flex flex-row gap-4 justify-center items-center h-12
-          box-shadow"
+          box-shadow z-50"
       >
         <Link className="text-2xl font-bold ml-4 mr-auto select-none transition hover:text-red-500" href="/">
           <h1>Shared List</h1>
