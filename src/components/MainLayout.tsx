@@ -72,10 +72,10 @@ const UserPanel: React.FC<UserPanelProps> = ({ setOpen }) => {
   const buttonClasses = "w-full text-2xl font-semibold py-4 px-8 transition rounded text-white bg-red-500 hover:bg-slate-700";
   return (
     <>
-      <div ref={bgRef} className="absolute w-full h-full bg-black/40" />
+      <div ref={bgRef} className="absolute w-full h-full bg-black/40 z-10" />
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
           flex flex-col justify-center items-center
-          w-3/4"
+          w-3/4 z-20"
       >
         <div className="bg-slate-800 rounded flex flex-col py-4 px-8 gap-8 w-full text-center justify-center items-center">
           {sessionData &&

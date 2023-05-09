@@ -73,7 +73,7 @@ const ListPage: NextPage<Props> = ({ id }) => {
           />
         }
         <div className="flex flex-col justify-center items-center text-white mt-8 w-full">
-          <div className="flex flex-col justify-center items-center w-5/6 bg-white/10 rounded">
+          <div className="flex flex-col justify-center items-center w-5/6 bg-white/10 backdrop-blur rounded">
             <div className="flex flex-row pl-2 w-full justify-start 
                 items-center bg-gradient-to-r from-black/10 to-black/30">
               <h1 className="text-2xl font-semibold">{list.name}</h1>
@@ -112,6 +112,7 @@ const ListItems: React.FC<ListItemsProps> = ({
   listItems, setAddModalOpen, reload, error
 }) => {
   const updateListItem = api.lists.updateListItem.useMutation();
+  const removeListItem = api.lists.removeListItem.useMutation();
 
   if (!listItems)
     return (
@@ -140,10 +141,10 @@ const ListItems: React.FC<ListItemsProps> = ({
     )
 
   return (
-    <div className="min-h-[15rem] w-full flex flex-col justify-center items-center py-3 px-8 gap-3">
+    <div className="min-h-[15rem] w-full flex flex-col justify-center items-center py-3 px-6 gap-3">
       {error && <span className="text-red-400 text-xl font-semibold text-center">{error}</span>}
       {listItems.map((item) => (
-        <div key={item.id} className="w-full flex flex-row gap-3 justify-start items-center px-2">
+        <div key={item.id} className="w-full flex flex-row gap-3 justify-start items-center">
           <button
             className="w-8 h-8 bg-white rounded-full text-red-500 
                         hover:bg-white/50 flex justify-center items-center font-bold text-4xl"
@@ -159,7 +160,18 @@ const ListItems: React.FC<ListItemsProps> = ({
           >
             {item.completed ? "✓" : ""}
           </button>
-          <span className="font-light text-xl select-all line-clamp-1">{item.text}</span>
+          <span className="font-light text-xl select-all line-clamp-1 hover:text-red-200">{item.text}</span>
+          <button
+            className="bg-white hover:bg-white/50 rounded-lg w-6 h-6 text-red-500 mr-0 ml-auto 
+              flex justify-center items-center font-light text-2xl"
+            onClick={async () => {
+              const a = await removeListItem.mutateAsync(item.id);
+              console.log(a);
+              reload();
+            }}
+          >
+            X
+          </button>
         </div>
       ))}
       <button
@@ -221,10 +233,10 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem 
 
   return (
     <>
-      <div className="absolute w-full h-full bg-black/30 text-white" />
+      <div className="absolute w-full h-full bg-black/30 text-white z-10" />
       <div ref={mainRef} className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
           flex flex-col justify-center items-center
-          w-3/4 text-white"
+          w-3/4 text-white z-20"
       >
         <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 backdrop-blur w-full flex flex-col py-2 px-4 items-center h-72 rounded">
           <h1 className="text-3xl font-semibold">Add Item</h1>

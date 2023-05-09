@@ -123,5 +123,24 @@ export const listsRouter = createTRPCRouter({
           completed: input.completed
         }
       })
-    })
+    }),
+  removeListItem: protectedProcedure
+    .input(z.string())
+    .mutation(({ input, ctx }) => {
+      return ctx.prisma.listItem.deleteMany({
+        where: {
+          AND: [
+            { id: input },
+            {
+              list: {
+                OR: [
+                  { ownerId: ctx.session.user.id },
+                  { collaborators: { some: { id: ctx.session.user.id } } }
+                ]
+              }
+            }
+          ]
+        }
+      })
+    }),
 });
