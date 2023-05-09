@@ -8,7 +8,18 @@ import MainLayout from "~/components/MainLayout";
 import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
-  const { data: sessionData } = useSession();
+  const { data: sessionData, status } = useSession();
+
+  const SelectView = () => {
+    switch (status) {
+      case "loading":
+        return <InfinitySpin color="white" />
+      case "unauthenticated":
+        return <NotSignedInView />
+      case "authenticated":
+        return <YourListsView />
+    }
+  }
 
   return (
     <>
@@ -19,11 +30,7 @@ const Home: NextPage = () => {
       </Head>
       <MainLayout>
         <div className="container flex flex-col items-center justify-center gap-4 px-2 py-6">
-          {
-            sessionData
-              ? <YourListsView />
-              : <NotSignedInView />
-          }
+          <SelectView />
         </div>
       </MainLayout>
     </>
