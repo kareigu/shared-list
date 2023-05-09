@@ -33,14 +33,14 @@ const ListPage: NextPage<Props> = ({ id }) => {
   const { data: sessionData } = useSession();
   const [addModalOpen, setAddModalOpen] = useState(false);
   const { data: list, isLoading: listLoading } = api.lists.getListById.useQuery(id, {
-    enabled: sessionData?.user !== null
+    enabled: sessionData?.user !== undefined
   });
   const {
     data: listItems,
     isLoading: listItemsLoading,
     refetch: reloadListItems,
     error: listItemsError } = api.lists.getListItemsForList.useQuery(list?.id ?? "", {
-      enabled: sessionData?.user !== null && typeof list !== "undefined",
+      enabled: sessionData?.user !== undefined && list !== undefined,
     });
 
   console.log(list);
