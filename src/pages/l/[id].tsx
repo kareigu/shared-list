@@ -56,7 +56,7 @@ const ListPage: NextPage<Props> = ({ id }) => {
   if (!list)
     return (
       <MainLayout>
-        <div className="flex flex-col justify-center items-center text-white mt-8 w-full">
+        <div className="flex flex-col justify-center items-center text-white mt-8 w-full animate-slide-down">
           <h1 className="text-3xl font-semibold">List Not Found</h1>
         </div>
       </MainLayout>
@@ -72,7 +72,7 @@ const ListPage: NextPage<Props> = ({ id }) => {
             onAddItem={() => reloadListItems()}
           />
         }
-        <div className="flex flex-col justify-center items-center text-white mt-8 w-full">
+        <div className="flex flex-col justify-center items-center text-white mt-8 mb-6 w-full animate-slide-down">
           <div className="flex flex-col justify-center items-center w-5/6 bg-white/10 backdrop-blur rounded">
             <div className="flex flex-row pl-2 w-full justify-start 
                 items-center bg-gradient-to-r from-black/10 to-black/30">
@@ -132,7 +132,7 @@ const ListItems: React.FC<ListItemsProps> = ({
       <div className="h-64 flex flex-col justify-center items-center gap-4 gap-4">
         <span className="text-2xl font-semibold">No Items Added</span>
         <button
-          className="btn-rounded-red"
+          className="btn-rounded-red animate-bounce"
           onClick={() => setAddModalOpen(true)}
         >
           Add Item
@@ -144,10 +144,11 @@ const ListItems: React.FC<ListItemsProps> = ({
     <div className="min-h-[15rem] w-full flex flex-col justify-center items-center py-3 px-6 gap-3">
       {error && <span className="text-red-400 text-xl font-semibold text-center">{error}</span>}
       {listItems.map((item) => (
-        <div key={item.id} className="w-full flex flex-row gap-3 justify-start items-center">
+        <div key={item.id} className="w-full flex flex-row gap-3 justify-start items-center animate-slide-right">
           <button
-            className="w-8 h-8 bg-white rounded-full text-red-500 
-                        hover:bg-white/50 flex justify-center items-center font-bold text-4xl"
+            className="w-8 h-8 bg-white rounded-full text-blue-400 
+                      hover:bg-white/50 flex justify-center 
+                      active:bg-red-400/40 transition items-center font-bold text-4xl"
             onClick={async () => {
               const updated = await updateListItem.mutateAsync({
                 listItem: item.id,
@@ -162,7 +163,8 @@ const ListItems: React.FC<ListItemsProps> = ({
           </button>
           <span className="font-light text-xl select-all line-clamp-1 hover:text-red-200">{item.text}</span>
           <button
-            className="bg-white hover:bg-white/50 rounded-lg w-6 h-6 text-red-500 mr-0 ml-auto 
+            className="bg-white hover:bg-white/50 active:bg-red-400/40 transition 
+                      rounded-lg w-6 h-6 text-red-500 mr-0 ml-auto 
               flex justify-center items-center font-light text-2xl"
             onClick={async () => {
               const a = await removeListItem.mutateAsync(item.id);
@@ -170,7 +172,7 @@ const ListItems: React.FC<ListItemsProps> = ({
               reload();
             }}
           >
-            X
+            ✘
           </button>
         </div>
       ))}
@@ -233,10 +235,10 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem 
 
   return (
     <>
-      <div className="absolute w-full h-full bg-black/30 text-white z-10" />
+      <div className="absolute w-full h-full bg-black/30 text-white z-10 backdrop-blur-sm" />
       <div ref={mainRef} className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
           flex flex-col justify-center items-center
-          w-3/4 text-white z-20"
+          w-3/4 text-white z-20 animate-blur-in"
       >
         <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 backdrop-blur w-full flex flex-col py-2 px-4 items-center h-72 rounded">
           <h1 className="text-3xl font-semibold">Add Item</h1>
@@ -254,7 +256,14 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem 
                   }
                 })}
             />
-            {errors.text && <span className="text-red-400 ml-4">{errors.text.message ?? errors.text.type}</span>}
+            {errors.text &&
+              <span className="text-red-400 ml-4 animate-slide-right">
+                {errors.text.message ?? errors.text.type}
+              </span>
+            }
+            {!errors.text &&
+              <span className="h-4" />
+            }
             <input
               placeholder="Extra info (optional)"
               className="px-4 py-2 bg-slate-600 text-white rounded-full"
@@ -268,7 +277,14 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem 
                 }
               )}
             />
-            {errors.info && <span className="text-red-400 ml-4">{errors.info.message ?? errors.info.type}</span>}
+            {errors.info &&
+              <span className="text-red-400 ml-4 animate-slide-right">
+                {errors.info.message ?? errors.info.type}
+              </span>
+            }
+            {!errors.info &&
+              <span className="h-4" />
+            }
             <div className="flex flex-row mb-1 mt-auto gap-8 justify-center w-full">
               <input type="submit" className="btn-rounded-red w-24" value="Add" />
               <button className="btn-rounded-red w-24" onClick={() => setOpen(false)}>Cancel</button>

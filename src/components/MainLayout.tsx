@@ -34,7 +34,7 @@ const MainLayout = (props: PropsWithChildren) => {
         </button>
       </header>
       <main className="relative flex min-h-screen flex-col items-center 
-        bg-gradient-to-b from-gray-900 via-red-500 to-gray-900"
+        bg-gradient-to-b from-gray-900 via-red-500 via-20% to-gray-900"
       >
         <>
           {userPanelOpen &&
@@ -69,15 +69,18 @@ const UserPanel: React.FC<UserPanelProps> = ({ setOpen }) => {
     };
   }, [bgRef]);
 
-  const buttonClasses = "w-full text-2xl font-semibold py-4 px-8 transition rounded text-white bg-red-500 hover:bg-slate-700";
+  // const buttonClasses = "w-full text-2xl font-semibold py-4 px-8 transition rounded-full text-white bg-red-500 hover:bg-slate-700";
+
+  const buttonClasses = "btn-rounded-red w-full text-2xl py-4 px-8"
   return (
     <>
-      <div ref={bgRef} className="absolute w-full h-full bg-black/40 z-10" />
+      <div ref={bgRef} className="absolute w-full h-full bg-black/40 z-10 backdrop-blur-sm" />
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
           flex flex-col justify-center items-center
-          w-3/4 z-20"
+          w-3/4 z-20 animate-blur-in"
       >
-        <div className="bg-slate-800 rounded flex flex-col py-4 px-8 gap-8 w-full text-center justify-center items-center">
+        <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 backdrop-blur 
+          rounded flex flex-col py-4 px-8 gap-8 w-full text-center justify-center items-center">
           {sessionData &&
             <>
               <Link

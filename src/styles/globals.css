@@ -4,7 +4,7 @@
 
 @layer components {
   .btn-rounded-red {
-    @apply rounded-full bg-red-500/90 px-4 py-1 font-semibold text-white no-underline transition hover:bg-white/20
+    @apply rounded-full bg-gradient-to-br from-red-400/80 to-red-500/90 px-4 py-1 font-semibold text-white no-underline transition hover:bg-black active:bg-blue-400
   }
 }
 

@@ -21,7 +21,7 @@ const CreateList: NextPage = () => {
 
   return (
     <MainLayout>
-      <div className="text-white w-full px-8 py-4">
+      <div className="text-white w-full px-8 py-4 animate-slide-down">
         <h1 className="text-3xl font-semibold">Create a List</h1>
         <form
           className="mt-4 py-4 flex flex-col bg-white/10 rounded justify-center items-center"
