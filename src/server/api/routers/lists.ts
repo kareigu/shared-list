@@ -6,6 +6,7 @@ import {
   publicProcedure,
   protectedProcedure,
 } from "~/server/api/trpc";
+import { ListItemRules } from "~/utils/rules";
 
 export const listsRouter = createTRPCRouter({
   getListsForUser: protectedProcedure
@@ -92,7 +93,15 @@ export const listsRouter = createTRPCRouter({
       })
     }),
   createListItem: protectedProcedure
-    .input(z.object({ list: z.string(), text: z.string(), info: z.string().optional() }))
+    .input(z.object(
+      {
+        list: z.string(),
+        text: z.string()
+          .max(ListItemRules.textLength, `Maximum ${ListItemRules.textLength} characters`),
+        info: z.string()
+          .max(ListItemRules.infoLength, `Maximum ${ListItemRules.infoLength} characters`)
+          .optional()
+      }))
     .mutation(({ input, ctx }) => {
       return ctx.prisma.listItem.create({
         data: {

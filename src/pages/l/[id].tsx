@@ -9,6 +9,7 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { useSession } from "next-auth/react";
 import { TRPCError } from "@trpc/server";
 import { ListItem } from "@prisma/client";
+import { ListItemRules } from "~/utils/rules";
 
 type Props = {
   id: string,
@@ -139,13 +140,13 @@ const ListItems: React.FC<ListItemsProps> = ({
     )
 
   return (
-    <div className="min-h-[15rem] w-full flex flex-col justify-center items-center py-3 px-8 gap-4 gap-4">
+    <div className="min-h-[15rem] w-full flex flex-col justify-center items-center py-3 px-8 gap-3">
       {error && <span className="text-red-400 text-xl font-semibold text-center">{error}</span>}
       {listItems.map((item) => (
-        <div key={item.id} className="w-full flex flex-row gap-2 justify-start items-center">
+        <div key={item.id} className="w-full flex flex-row gap-3 justify-start items-center px-2">
           <button
-            className="w-5 h-5 bg-white rounded-full text-red-500 
-                        hover:bg-white/50 flex justify-center items-center font-bold text-xl"
+            className="w-8 h-8 bg-white rounded-full text-red-500 
+                        hover:bg-white/50 flex justify-center items-center font-bold text-4xl"
             onClick={async () => {
               const updated = await updateListItem.mutateAsync({
                 listItem: item.id,
@@ -158,7 +159,7 @@ const ListItems: React.FC<ListItemsProps> = ({
           >
             {item.completed ? "✓" : ""}
           </button>
-          <span>{item.text}</span>
+          <span className="font-light text-xl select-all line-clamp-1">{item.text}</span>
         </div>
       ))}
       <button
@@ -183,7 +184,10 @@ type FormInputs = {
 }
 
 const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem }) => {
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormInputs>();
+  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormInputs>({
+    mode: "onChange",
+    delayError: 450,
+  });
   const createItem = api.lists.createListItem.useMutation();
 
   const onSubmit: SubmitHandler<FormInputs> = async (values) => {
@@ -199,7 +203,6 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem 
     }
   }
 
-
   return (
     <>
       <div className="absolute w-full h-full bg-black/30 text-white" />
@@ -207,19 +210,37 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem 
           flex flex-col justify-center items-center
           w-3/4 text-white"
       >
-        <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 backdrop-blur w-full flex flex-col py-2 px-4 items-center h-64 rounded">
+        <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 backdrop-blur w-full flex flex-col py-2 px-4 items-center h-72 rounded">
           <h1 className="text-3xl font-semibold">Add Item</h1>
-          <form className="h-full flex flex-col gap-4 py-4" onSubmit={handleSubmit(onSubmit)}>
+          <form className="h-full flex flex-col gap-2 py-4" onSubmit={handleSubmit(onSubmit)}>
             <input
               placeholder="Item"
               className="px-4 py-2 bg-slate-600 text-white rounded-full"
-              {...register("text", { required: true })}
+              {...register(
+                "text",
+                {
+                  required: "Item needs text",
+                  maxLength: {
+                    value: ListItemRules.textLength,
+                    message: `Item too long (max ${ListItemRules.textLength} characters)`
+                  }
+                })}
             />
+            {errors.text && <span className="text-red-400 ml-4">{errors.text.message ?? errors.text.type}</span>}
             <input
               placeholder="Extra info (optional)"
               className="px-4 py-2 bg-slate-600 text-white rounded-full"
-              {...register("info")}
+              {...register(
+                "info",
+                {
+                  maxLength: {
+                    value: ListItemRules.infoLength,
+                    message: `Info too long (max ${ListItemRules.infoLength} characters)`
+                  }
+                }
+              )}
             />
+            {errors.info && <span className="text-red-400 ml-4">{errors.info.message ?? errors.info.type}</span>}
             <div className="flex flex-row mb-1 mt-auto gap-8 justify-center w-full">
               <input type="submit" className="btn-rounded-red w-24" value="Add" />
               <button className="btn-rounded-red w-24" onClick={() => setOpen(false)}>Cancel</button>
