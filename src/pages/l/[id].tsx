@@ -143,11 +143,9 @@ const ListItems: React.FC<ListItemsProps> = ({
       {error && <span className="text-red-400 text-xl font-semibold text-center">{error}</span>}
       {listItems.map((item) => (
         <div key={item.id} className="w-full flex flex-row gap-2 justify-start items-center">
-          <input
+          <button
             className="w-5 h-5 bg-white rounded-full text-red-500 
                         hover:bg-white/50 flex justify-center items-center font-bold text-xl"
-            type="button"
-            value={item.completed ? "✓" : "⤫"}
             onClick={async () => {
               const updated = await updateListItem.mutateAsync({
                 listItem: item.id,
@@ -157,7 +155,9 @@ const ListItems: React.FC<ListItemsProps> = ({
               if (updated)
                 reload();
             }}
-          />
+          >
+            {item.completed ? "✓" : ""}
+          </button>
           <span>{item.text}</span>
         </div>
       ))}
