@@ -1,6 +1,7 @@
 import { type NextPage } from "next";
 import { useSession } from "next-auth/react";
 import Head from "next/head";
+import Image from "next/image";
 import Link from "next/link";
 import { InfinitySpin } from "react-loader-spinner";
 
@@ -95,7 +96,30 @@ const YourListsView = () => {
               backdrop-blur bg-white/10 h-52 p-4 text-white transition hover:bg-white/20 active:bg-blue-400/20"
             href={`/l/${list.id}`}
           >
-            <h3 className="text-2xl font-bold">{list.name} →</h3>
+            <div className="flex flex-row items-center justify-start">
+              <h3 className="text-2xl font-bold">{list.name} →</h3>
+              <div className="mr-1 ml-auto flex flex-row gap-1">
+                <Image
+                  className="rounded-full"
+                  width={20}
+                  height={20}
+                  src={list.owner.image ?? "/default-user.png"}
+                  alt="Creator profile picture"
+                  title={list.owner.name ?? "Creator"}
+                />
+                {list.collaborators.map((c) => (
+                  <Image
+                    className="rounded-full"
+                    width={20}
+                    height={20}
+                    src={c.image ?? "/default-user.png"}
+                    alt="Creator profile picture"
+                    title={c.name ?? "Collaborator"}
+                  />
+                ))}
+
+              </div>
+            </div>
             <div className="w-full">
               {list.items.length === 0 &&
                 <span>No items included</span>

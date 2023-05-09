@@ -26,6 +26,10 @@ export const listsRouter = createTRPCRouter({
         select: {
           id: true,
           name: true,
+          collaborators: {
+            take: 2,
+          },
+          owner: true,
           items: {
             select: {
               id: true,
