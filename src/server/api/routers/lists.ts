@@ -60,11 +60,6 @@ export const listsRouter = createTRPCRouter({
         include: {
           owner: true,
           collaborators: true,
-          items: {
-            orderBy: {
-              addedAt: "asc",
-            }
-          },
         }
       });
 
@@ -75,6 +70,26 @@ export const listsRouter = createTRPCRouter({
         throw new TRPCError({ code: "UNAUTHORIZED" });
 
       return list;
+    }),
+  getListItemsForList: protectedProcedure
+    .input(z.string())
+    .query(({ input, ctx }) => {
+      return ctx.prisma.listItem.findMany({
+        where: {
+          AND: [
+            { listId: input },
+            {
+              OR: [
+                { list: { ownerId: ctx.session.user.id } },
+                { list: { collaborators: { some: { id: ctx.session.user.id } } } }
+              ]
+            },
+          ]
+        },
+        orderBy: {
+          addedAt: "asc"
+        }
+      })
     }),
   createListItem: protectedProcedure
     .input(z.object({ list: z.string(), text: z.string(), info: z.string().optional() }))

@@ -7,6 +7,8 @@ import Image from "next/image";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useSession } from "next-auth/react";
+import { TRPCError } from "@trpc/server";
+import { ListItem } from "@prisma/client";
 
 type Props = {
   id: string,
@@ -30,14 +32,20 @@ export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
 const ListPage: NextPage<Props> = ({ id }) => {
   const { data: sessionData } = useSession();
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const { data: list, isLoading, refetch } = api.lists.getListById.useQuery(id, {
+  const { data: list, isLoading: listLoading } = api.lists.getListById.useQuery(id, {
     enabled: sessionData?.user !== null
   });
-  const updateListItem = api.lists.updateListItem.useMutation();
+  const {
+    data: listItems,
+    isLoading: listItemsLoading,
+    refetch: reloadListItems,
+    error: listItemsError } = api.lists.getListItemsForList.useQuery(list?.id ?? "", {
+      enabled: sessionData?.user !== null && typeof list !== "undefined",
+    });
 
   console.log(list);
 
-  if (isLoading)
+  if (listLoading || listItemsLoading)
     return (
       <MainLayout>
         <InfinitySpin color="white" />
@@ -56,7 +64,13 @@ const ListPage: NextPage<Props> = ({ id }) => {
   return (
     <MainLayout>
       <>
-        {addModalOpen && <AddItemModal setOpen={setAddModalOpen} listId={id} />}
+        {addModalOpen &&
+          <AddItemModal
+            setOpen={setAddModalOpen}
+            listId={id}
+            onAddItem={() => reloadListItems()}
+          />
+        }
         <div className="flex flex-col justify-center items-center text-white mt-8 w-full">
           <div className="flex flex-col justify-center items-center w-5/6 bg-white/10 rounded">
             <div className="flex flex-row pl-2 w-full justify-start 
@@ -73,45 +87,12 @@ const ListPage: NextPage<Props> = ({ id }) => {
                 />
               </span>
             </div>
-            {list.items.length === 0 &&
-              <div className="h-64 flex flex-col justify-center items-center gap-4 gap-4">
-                <span className="text-2xl font-semibold">No Items Added</span>
-                <button
-                  className="btn-rounded-red"
-                  onClick={() => setAddModalOpen(true)}
-                >
-                  Add Item
-                </button>
-              </div>
-            }
-            {list.items.length > 0 &&
-              <div className="min-h-[15rem] w-full flex flex-col justify-center items-center py-3 px-8 gap-4 gap-4">
-                {list.items.map((item) => (
-                  <div key={item.id} className="w-full flex flex-row gap-2 justify-start items-center">
-                    <input
-                      className="w-5 h-5 bg-white rounded-full text-red-500 
-                        hover:bg-white/50 flex justify-center items-center font-bold text-xl"
-                      type="button"
-                      value={item.completed ? "✓" : "⤫"}
-                      onClick={async () => {
-                        const updated = await updateListItem.mutateAsync({
-                          listItem: item.id,
-                          completed: !item.completed,
-                        });
-                        refetch();
-                      }}
-                    />
-                    <span>{item.text}</span>
-                  </div>
-                ))}
-                <button
-                  className="btn-rounded-red mb-0 mt-auto"
-                  onClick={() => setAddModalOpen(true)}
-                >
-                  Add Item
-                </button>
-              </div>
-            }
+            <ListItems
+              listItems={listItems}
+              setAddModalOpen={setAddModalOpen}
+              reload={() => reloadListItems()}
+              error={listItemsError?.message}
+            />
           </div>
         </div>
       </>
@@ -119,9 +100,81 @@ const ListPage: NextPage<Props> = ({ id }) => {
   )
 }
 
+type ListItemsProps = {
+  listItems?: ListItem[],
+  reload: () => void,
+  error?: string,
+  setAddModalOpen: (v: boolean) => void,
+}
+
+const ListItems: React.FC<ListItemsProps> = ({
+  listItems, setAddModalOpen, reload, error
+}) => {
+  const updateListItem = api.lists.updateListItem.useMutation();
+
+  if (!listItems)
+    return (
+      <div className="h-64 flex flex-col justify-center items-center gap-4 gap-4">
+        <span className="text-2xl font-semibold">Error Getting Items</span>
+        <button
+          className="btn-rounded-red"
+          onClick={() => reload()}
+        >
+          Refresh
+        </button>
+      </div>
+    )
+
+  if (listItems.length === 0)
+    return (
+      <div className="h-64 flex flex-col justify-center items-center gap-4 gap-4">
+        <span className="text-2xl font-semibold">No Items Added</span>
+        <button
+          className="btn-rounded-red"
+          onClick={() => setAddModalOpen(true)}
+        >
+          Add Item
+        </button>
+      </div>
+    )
+
+  return (
+    <div className="min-h-[15rem] w-full flex flex-col justify-center items-center py-3 px-8 gap-4 gap-4">
+      {error && <span className="text-red-400 text-xl font-semibold text-center">{error}</span>}
+      {listItems.map((item) => (
+        <div key={item.id} className="w-full flex flex-row gap-2 justify-start items-center">
+          <input
+            className="w-5 h-5 bg-white rounded-full text-red-500 
+                        hover:bg-white/50 flex justify-center items-center font-bold text-xl"
+            type="button"
+            value={item.completed ? "✓" : "⤫"}
+            onClick={async () => {
+              const updated = await updateListItem.mutateAsync({
+                listItem: item.id,
+                completed: !item.completed,
+              }).catch((e: TRPCError) => console.error(e));
+
+              if (updated)
+                reload();
+            }}
+          />
+          <span>{item.text}</span>
+        </div>
+      ))}
+      <button
+        className="btn-rounded-red mb-0 mt-auto"
+        onClick={() => setAddModalOpen(true)}
+      >
+        Add Item
+      </button>
+    </div>
+  )
+}
+
 type AddItemModalProps = {
   listId: string,
   setOpen: (v: boolean) => void,
+  onAddItem: () => void,
 }
 
 type FormInputs = {
@@ -129,7 +182,7 @@ type FormInputs = {
   info?: string,
 }
 
-const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId }) => {
+const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem }) => {
   const { register, handleSubmit, watch, formState: { errors } } = useForm<FormInputs>();
   const createItem = api.lists.createListItem.useMutation();
 
@@ -138,8 +191,12 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId }) => {
       list: listId,
       text: values.text,
       info: values.info
-    });
+    }).catch((e: TRPCError) => console.error(e));
     console.log(item);
+    if (item) {
+      onAddItem();
+      setOpen(false);
+    }
   }
 
 
