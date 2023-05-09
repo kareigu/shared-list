@@ -4,7 +4,7 @@ import MainLayout from "~/components/MainLayout";
 import { api } from "~/utils/api";
 import { InfinitySpin } from "react-loader-spinner";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useSession } from "next-auth/react";
 import { TRPCError } from "@trpc/server";
@@ -189,6 +189,22 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem 
     delayError: 450,
   });
   const createItem = api.lists.createListItem.useMutation();
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClick(event: MouseEvent) {
+      const target = event.target instanceof Node ? event.target : null;
+
+      if (!mainRef.current?.contains(target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+    };
+  }, [mainRef]);
+
 
   const onSubmit: SubmitHandler<FormInputs> = async (values) => {
     const item = await createItem.mutateAsync({
@@ -206,7 +222,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem 
   return (
     <>
       <div className="absolute w-full h-full bg-black/30 text-white" />
-      <div className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+      <div ref={mainRef} className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
           flex flex-col justify-center items-center
           w-3/4 text-white"
       >
