@@ -1,3 +1,4 @@
+import z from "zod";
 import { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
 import MainLayout from "~/components/MainLayout";
@@ -8,29 +9,35 @@ import { useEffect, useRef, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useSession } from "next-auth/react";
 import { TRPCError } from "@trpc/server";
-import { ListItem } from "@prisma/client";
+import { List, ListItem, User } from "@prisma/client";
 import { ListItemRules } from "~/utils/rules";
+import { TRPCClientError } from "@trpc/client";
 
 type Props = {
   id: string,
+  baseUrl: string,
 }
 
 export const getServerSideProps: GetServerSideProps<Props> = async (ctx) => {
-  const id = ctx.params?.id;
-  if (typeof id !== "string")
+  const id = await z.string().cuid()
+    .parseAsync(ctx.params?.id)
+    .catch((e: Error) => e);
+  if (id instanceof Error)
     return {
       notFound: true,
     }
 
 
+
   return {
     props: {
       id,
+      baseUrl: `https://${ctx.req.headers.host || "localhost:3000"}`
     }
   }
 }
 
-const ListPage: NextPage<Props> = ({ id }) => {
+const ListPage: NextPage<Props> = ({ id, baseUrl }) => {
   const { data: sessionData } = useSession();
   const [addModalOpen, setAddModalOpen] = useState(false);
   const { data: list, isLoading: listLoading } = api.lists.getListById.useQuery(id, {
@@ -44,7 +51,10 @@ const ListPage: NextPage<Props> = ({ id }) => {
       enabled: sessionData?.user !== undefined && list !== undefined,
     });
 
-  console.log(list);
+  const [infoModalOpen, setInfoModalOpen] = useState(false);
+
+
+  const isOwner = sessionData?.user.id === list?.ownerId;
 
   if (listLoading || listItemsLoading)
     return (
@@ -72,11 +82,27 @@ const ListPage: NextPage<Props> = ({ id }) => {
             onAddItem={() => reloadListItems()}
           />
         }
+        {infoModalOpen &&
+          <ListInfoModal
+            baseUrl={baseUrl}
+            list={list}
+            setOpen={setInfoModalOpen}
+          />
+        }
         <div className="flex flex-col justify-center items-center text-white mt-8 mb-6 w-full animate-slide-down">
           <div className="flex flex-col justify-center items-center w-5/6 bg-white/10 backdrop-blur rounded">
             <div className="flex flex-row pl-2 w-full justify-start 
                 items-center bg-gradient-to-r from-black/10 to-black/30">
-              <h1 className="text-2xl font-semibold">{list.name}</h1>
+              <h1
+                className={`text-2xl font-semibold 
+                  ${isOwner ? "select-none hover:text-blue-400 cursor-pointer" : "select-all hover:text-blue-200"}`}
+                onClick={() => {
+                  if (isOwner)
+                    setInfoModalOpen(true)
+                }}
+              >
+                {list.name}
+              </h1>
               <span className="mr-0 ml-auto py-2 px-2 text-sm h-full select-none">
                 Created by <span className="text-red-400 select-all">{list.owner.name}</span>
                 <Image
@@ -183,6 +209,91 @@ const ListItems: React.FC<ListItemsProps> = ({
         Add Item
       </button>
     </div>
+  )
+}
+
+type ListInfoModalProps = {
+  baseUrl: string,
+  list: List & { collaborators: User[] },
+  setOpen: (v: boolean) => void,
+}
+
+const ListInfoModal: React.FC<ListInfoModalProps> = ({ setOpen, list, baseUrl }) => {
+  const [inviteId, setInviteId] = useState<string>();
+  const mainRef = useRef<HTMLDivElement>(null);
+
+  const removeList = api.lists.removeList.useMutation();
+  const createInvite = api.invites.createInvite.useMutation();
+
+  const router = useRouter();
+
+  useEffect(() => {
+    function handleClick(event: MouseEvent) {
+      const target = event.target instanceof Node ? event.target : null;
+
+      if (!mainRef.current?.contains(target)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => {
+      document.removeEventListener("mousedown", handleClick);
+    };
+  }, [mainRef]);
+
+  return (
+    <>
+      <div className="absolute w-full h-full bg-black/30 text-white z-10 backdrop-blur-sm" />
+      <div ref={mainRef} className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+          flex flex-col justify-center items-center
+          w-3/4 text-white z-20 animate-blur-in"
+      >
+        <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 
+          rounded backdrop-blur w-full flex flex-col px-4 py-4 gap-2"
+        >
+          <h1 className="font-light text-sm text-blue-400">Info</h1>
+          <input
+            className="bg-slate-600 rounded-full py-1 px-4 select-all"
+            value={list.name}
+            readOnly
+          />
+          <h1 className="mt-4 font-light text-sm text-blue-400">Invite link</h1>
+          <div className="flex flex-row justify-start items-center">
+            <input
+              className="bg-slate-600 rounded-l-full h-8 px-4 w-full select-all"
+              value={inviteId ? `${baseUrl}/invite/${inviteId}` : ""}
+              placeholder="Click to generate link"
+              readOnly
+            />
+            <button
+              className="btn-rounded-red rounded-l-none
+                flex justify-center items-center font-light h-8 w-4"
+              onClick={async () => {
+                const invite = await createInvite.mutateAsync(list.id);
+                setInviteId(invite.id);
+                console.log(invite);
+              }}
+            >
+              ＋
+            </button>
+          </div>
+          <button
+            className="btn-rounded-red w-3/4 mx-auto mt-4"
+            onClick={async () => {
+              const res = await removeList
+                .mutateAsync(list.id)
+                .catch((e) => console.error(e));
+
+              console.log(res);
+              if (res)
+                router.push("/");
+            }}
+          >
+            Remove
+          </button>
+        </div>
+      </div>
+    </>
   )
 }
 

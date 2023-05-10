@@ -57,6 +57,32 @@ export const listsRouter = createTRPCRouter({
         }
       })
     }),
+  removeList: protectedProcedure
+    .input(z.string().cuid())
+    .mutation(({ input, ctx }) => {
+      return ctx.prisma.$transaction(async (tx) => {
+        const list = await tx.list.findFirst({
+          where: {
+            id: input,
+            ownerId: ctx.session.user.id,
+          }
+        });
+
+        if (!list)
+          throw new TRPCError({ code: "BAD_REQUEST", message: "No list found or not the owner" });
+
+        const removed = await tx.list.delete({
+          where: {
+            id: list.id
+          }
+        }).catch((e: Error) => e);
+
+        if (removed instanceof Error)
+          throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: removed.message, cause: removed });
+
+        return removed;
+      });
+    }),
   getListById: protectedProcedure
     .input(z.string())
     .query(async ({ input, ctx }) => {
