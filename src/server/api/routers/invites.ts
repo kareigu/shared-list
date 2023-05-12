@@ -25,6 +25,10 @@ export const invitesRouter = createTRPCRouter({
         const invitedBy = await tx.user.findUnique({
           where: {
             id: invite.creatorId,
+          },
+          select: {
+            name: true,
+            image: true,
           }
         });
 
@@ -34,6 +38,9 @@ export const invitesRouter = createTRPCRouter({
         const list = await tx.list.findUnique({
           where: {
             id: invite.to,
+          },
+          select: {
+            name: true,
           }
         });
 
