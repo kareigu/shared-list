@@ -80,7 +80,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ setOpen }) => {
           w-3/4 z-20 animate-blur-in"
       >
         <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 backdrop-blur 
-          rounded flex flex-col py-4 px-8 gap-8 w-full text-center justify-center items-center">
+          rounded-3xl flex flex-col py-4 px-8 gap-8 w-full text-center justify-center items-center">
           {sessionData &&
             <>
               <Link

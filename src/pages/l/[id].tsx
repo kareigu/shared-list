@@ -90,9 +90,9 @@ const ListPage: NextPage<Props> = ({ id, baseUrl }) => {
           />
         }
         <div className="flex flex-col justify-center items-center text-white mt-8 mb-6 w-full animate-slide-down">
-          <div className="flex flex-col justify-center items-center w-5/6 bg-white/10 backdrop-blur rounded">
+          <div className="flex flex-col justify-center items-center w-5/6 bg-white/10 backdrop-blur rounded-xl">
             <div className="flex flex-row pl-2 w-full justify-start 
-                items-center bg-gradient-to-r from-black/10 to-black/30">
+                items-center bg-gradient-to-r from-black/10 to-black/30 rounded-t-xl">
               <h1
                 className={`text-2xl font-semibold 
                   ${isOwner ? "select-none hover:text-blue-400 cursor-pointer" : "select-all hover:text-blue-200"}`}
@@ -249,7 +249,7 @@ const ListInfoModal: React.FC<ListInfoModalProps> = ({ setOpen, list, baseUrl })
           w-3/4 text-white z-20 animate-blur-in"
       >
         <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 
-          rounded backdrop-blur w-full flex flex-col px-4 py-4 gap-2"
+          rounded-xl backdrop-blur w-full flex flex-col px-4 py-4 gap-2"
         >
           <h1 className="font-light text-sm text-blue-400">Info</h1>
           <input

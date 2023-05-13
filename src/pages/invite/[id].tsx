@@ -127,7 +127,7 @@ const InvitePage: NextPage<Props> = (props) => {
         <div
           className="bg-gradient-to-br from-white/20 to-white/40 
             w-3/4 mt-12 py-4 px-4 flex flex-col items-center
-            rounded backdrop-blur"
+            rounded-xl backdrop-blur"
         >
           <h1 className="text-2xl bg-black/20 px-2 py-1 rounded text-center w-11/12">You've been invited to
             <br />
