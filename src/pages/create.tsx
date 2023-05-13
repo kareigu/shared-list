@@ -1,6 +1,6 @@
-import { NextPage } from "next";
+import type { NextPage } from "next";
 import MainLayout from "~/components/MainLayout";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { type SubmitHandler, useForm } from "react-hook-form";
 import { api } from "~/utils/api";
 import { useRouter } from "next/router";
 
@@ -9,14 +9,14 @@ type FormInputs = {
 };
 
 const CreateList: NextPage = () => {
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormInputs>();
+  const { register, handleSubmit, formState: { errors } } = useForm<FormInputs>();
   const router = useRouter();
   const createList = api.lists.createList.useMutation();
 
   const onSubmit: SubmitHandler<FormInputs> = async (values) => {
     console.info(values);
     const list = await createList.mutateAsync(values);
-    router.push(`/l/${list.id}`);
+    await router.push(`/l/${list.id}`);
   };
 
   return (
@@ -25,6 +25,7 @@ const CreateList: NextPage = () => {
         <h1 className="text-3xl font-semibold">Create a List</h1>
         <form
           className="mt-4 py-4 flex flex-col bg-white/10 rounded justify-center items-center"
+          // eslint-disable-next-line @typescript-eslint/no-misused-promises
           onSubmit={handleSubmit(onSubmit)}
         >
           <input
@@ -37,7 +38,7 @@ const CreateList: NextPage = () => {
           <input className="btn-rounded-red my-4 cursor-pointer" type="submit" value="Create" />
         </form>
       </div>
-    </MainLayout>
+    </MainLayout >
   )
 }
 

@@ -9,7 +9,7 @@ import MainLayout from "~/components/MainLayout";
 import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
-  const { data: sessionData, status } = useSession();
+  const { status } = useSession();
 
   const SelectView = () => {
     switch (status) {

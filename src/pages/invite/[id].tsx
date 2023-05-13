@@ -1,6 +1,5 @@
 import { createServerSideHelpers } from "@trpc/react-query/server"
-import { List, User } from "@prisma/client"
-import { GetServerSideProps, NextPage } from "next"
+import type { GetServerSideProps, NextPage } from "next"
 import MainLayout from "~/components/MainLayout"
 import { appRouter } from "~/server/api/root";
 import { getServerAuthSession } from "~/server/auth";
@@ -87,7 +86,7 @@ const InvitePage: NextPage<Props> = (props) => {
           <h2>{props.expired ? "Invite has expired" : "Invite has been used"}</h2>
           <button
             className="btn-rounded-red w-3/4 mt-auto mb-2"
-            onClick={() => router.push("/")}
+            onClick={() => void router.push("/")}
           >
             Go home
           </button>
@@ -98,22 +97,18 @@ const InvitePage: NextPage<Props> = (props) => {
       <>
         <button
           className="btn-rounded-red w-3/4 mt-auto"
-          onClick={async () => {
-            const listId = await acceptInvite
+          onClick={() => {
+            acceptInvite
               .mutateAsync(props.id)
+              .then(listId => void router.push(`/l/${listId}`))
               .catch((e: TRPCError) => console.error(e));
-
-            if (!listId)
-              return;
-
-            router.push(`/l/${listId}`)
           }}
         >
           Accept
         </button>
         <button
           className="btn-rounded-white w-3/4 mb-4"
-          onClick={() => router.push("/")}
+          onClick={() => void router.push("/")}
         >
           Decline
         </button>
@@ -129,7 +124,7 @@ const InvitePage: NextPage<Props> = (props) => {
             w-3/4 mt-12 py-4 px-4 flex flex-col items-center
             rounded-xl backdrop-blur"
         >
-          <h1 className="text-2xl bg-black/20 px-2 py-1 rounded text-center w-11/12">You've been invited to
+          <h1 className="text-2xl bg-black/20 px-2 py-1 rounded text-center w-11/12">You&apos;ve been invited to
             <br />
             <span className="text-blue-400 font-bold">{props.list?.name}</span>
           </h1>

@@ -1,5 +1,5 @@
 import { signIn, signOut, useSession } from "next-auth/react";
-import { PropsWithChildren, SetStateAction, useEffect, useRef, useState } from "react";
+import { type PropsWithChildren, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -67,7 +67,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ setOpen }) => {
     return () => {
       document.removeEventListener("mousedown", handleClick);
     };
-  }, [bgRef]);
+  }, [bgRef, setOpen]);
 
   // const buttonClasses = "w-full text-2xl font-semibold py-4 px-8 transition rounded-full text-white bg-red-500 hover:bg-slate-700";
 
@@ -91,7 +91,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ setOpen }) => {
               </Link>
               <button
                 className={buttonClasses}
-                onClick={() => signOut()}
+                onClick={() => {
+                  void signOut()
+                }}
               >
                 Sign Out
               </button>
@@ -100,7 +102,9 @@ const UserPanel: React.FC<UserPanelProps> = ({ setOpen }) => {
           {!sessionData &&
             <button
               className={buttonClasses}
-              onClick={() => signIn()}
+              onClick={() => {
+                void signIn()
+              }}
             >
               Sign In
             </button>

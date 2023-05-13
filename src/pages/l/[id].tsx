@@ -1,17 +1,16 @@
 import z from "zod";
-import { GetServerSideProps, NextPage } from "next";
+import type { GetServerSideProps, NextPage } from "next";
 import { useRouter } from "next/router";
 import MainLayout from "~/components/MainLayout";
 import { api } from "~/utils/api";
 import { InfinitySpin } from "react-loader-spinner";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
+import { type SubmitHandler, useForm } from "react-hook-form";
 import { useSession } from "next-auth/react";
-import { TRPCError } from "@trpc/server";
-import { List, ListItem, User } from "@prisma/client";
+import type { TRPCError } from "@trpc/server";
+import type { List, ListItem, User } from "@prisma/client";
 import { ListItemRules } from "~/utils/rules";
-import { TRPCClientError } from "@trpc/client";
 
 type Props = {
   id: string,
@@ -79,7 +78,7 @@ const ListPage: NextPage<Props> = ({ id, baseUrl }) => {
           <AddItemModal
             setOpen={setAddModalOpen}
             listId={id}
-            onAddItem={() => reloadListItems()}
+            onAddItem={() => void reloadListItems()}
           />
         }
         {infoModalOpen &&
@@ -117,7 +116,7 @@ const ListPage: NextPage<Props> = ({ id, baseUrl }) => {
             <ListItems
               listItems={listItems}
               setAddModalOpen={setAddModalOpen}
-              reload={() => reloadListItems()}
+              reload={() => void reloadListItems()}
               error={listItemsError?.message}
             />
           </div>
@@ -175,14 +174,13 @@ const ListItems: React.FC<ListItemsProps> = ({
             className="w-8 h-8 bg-white rounded-full text-blue-400 
                       hover:bg-white/50 flex justify-center 
                       active:bg-red-400/40 transition items-center font-bold text-4xl"
-            onClick={async () => {
-              const updated = await updateListItem.mutateAsync({
+            onClick={() => {
+              updateListItem.mutateAsync({
                 listItem: item.id,
                 completed: !item.completed,
-              }).catch((e: TRPCError) => console.error(e));
-
-              if (updated)
-                reload();
+              })
+                .then(() => reload())
+                .catch((e: TRPCError) => console.error(e));
             }}
           >
             {item.completed ? "✓" : ""}
@@ -192,10 +190,10 @@ const ListItems: React.FC<ListItemsProps> = ({
             className="bg-white hover:bg-white/50 active:bg-red-400/40 transition 
                       rounded-lg w-6 h-6 text-red-500 mr-0 ml-auto 
               flex justify-center items-center font-light text-2xl"
-            onClick={async () => {
-              const a = await removeListItem.mutateAsync(item.id);
-              console.log(a);
-              reload();
+            onClick={() => {
+              removeListItem.mutateAsync(item.id)
+                .then(() => reload())
+                .catch((e) => console.error(e));
             }}
           >
             ✘
@@ -239,7 +237,7 @@ const ListInfoModal: React.FC<ListInfoModalProps> = ({ setOpen, list, baseUrl })
     return () => {
       document.removeEventListener("mousedown", handleClick);
     };
-  }, [mainRef]);
+  }, [mainRef, setOpen]);
 
   return (
     <>
@@ -268,10 +266,10 @@ const ListInfoModal: React.FC<ListInfoModalProps> = ({ setOpen, list, baseUrl })
             <button
               className="btn-rounded-red rounded-l-none
                 flex justify-center items-center font-light h-8 w-4"
-              onClick={async () => {
-                const invite = await createInvite.mutateAsync(list.id);
-                setInviteId(invite.id);
-                console.log(invite);
+              onClick={() => {
+                createInvite.mutateAsync(list.id)
+                  .then((invite) => setInviteId(invite.id))
+                  .catch((e) => console.error(e));
               }}
             >
               ＋
@@ -279,14 +277,11 @@ const ListInfoModal: React.FC<ListInfoModalProps> = ({ setOpen, list, baseUrl })
           </div>
           <button
             className="btn-rounded-red w-3/4 mx-auto mt-4"
-            onClick={async () => {
-              const res = await removeList
+            onClick={() => {
+              removeList
                 .mutateAsync(list.id)
+                .then(() => router.push("/"))
                 .catch((e) => console.error(e));
-
-              console.log(res);
-              if (res)
-                router.push("/");
             }}
           >
             Remove
@@ -309,7 +304,7 @@ type FormInputs = {
 }
 
 const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem }) => {
-  const { register, handleSubmit, watch, formState: { errors } } = useForm<FormInputs>({
+  const { register, handleSubmit, formState: { errors } } = useForm<FormInputs>({
     mode: "onChange",
     delayError: 450,
   });
@@ -328,7 +323,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem 
     return () => {
       document.removeEventListener("mousedown", handleClick);
     };
-  }, [mainRef]);
+  }, [mainRef, setOpen]);
 
 
   const onSubmit: SubmitHandler<FormInputs> = async (values) => {
@@ -353,6 +348,7 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem 
       >
         <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 backdrop-blur w-full flex flex-col py-2 px-4 items-center h-72 rounded">
           <h1 className="text-3xl font-semibold">Add Item</h1>
+          { /* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
           <form className="h-full flex flex-col gap-2 py-4" onSubmit={handleSubmit(onSubmit)}>
             <input
               placeholder="Item"
