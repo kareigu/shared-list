@@ -109,6 +109,7 @@ const YourListsView = () => {
                 />
                 {list.collaborators.map((c) => (
                   <Image
+                    key={c.id}
                     className="rounded-full"
                     width={20}
                     height={20}
