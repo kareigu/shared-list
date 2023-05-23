@@ -244,7 +244,7 @@ const ListInfoModal: React.FC<ListInfoModalProps> = ({ setOpen, list, baseUrl })
       <div className="absolute w-full h-full bg-black/30 text-white z-10 backdrop-blur-sm" />
       <div ref={mainRef} className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
           flex flex-col justify-center items-center
-          w-3/4 text-white z-20 animate-blur-in"
+          w-3/4 lg:w-1/4 text-white z-20 animate-blur-in"
       >
         <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 
           rounded-xl backdrop-blur w-full flex flex-col px-4 py-4 gap-2"
@@ -342,11 +342,11 @@ const AddItemModal: React.FC<AddItemModalProps> = ({ setOpen, listId, onAddItem 
   return (
     <>
       <div className="absolute w-full h-full bg-black/30 text-white z-10 backdrop-blur-sm" />
-      <div ref={mainRef} className="absolute top-1/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
+      <div ref={mainRef} className="absolute top-2/4 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
           flex flex-col justify-center items-center
-          w-3/4 text-white z-20 animate-blur-in"
+          w-3/4 lg:w-1/4 text-white z-20 animate-blur-in"
       >
-        <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 backdrop-blur w-full flex flex-col py-2 px-4 items-center h-72 rounded">
+        <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 backdrop-blur w-full flex flex-col py-2 px-4 items-center h-72 rounded rounded-xl">
           <h1 className="text-3xl font-semibold">Add Item</h1>
           { /* eslint-disable-next-line @typescript-eslint/no-misused-promises */}
           <form className="h-full flex flex-col gap-2 py-4" onSubmit={handleSubmit(onSubmit)}>

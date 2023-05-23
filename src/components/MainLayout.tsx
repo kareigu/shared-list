@@ -11,7 +11,7 @@ const MainLayout = (props: PropsWithChildren) => {
     <>
       <header className="sticky top-0 bg-gradient-to-r from-slate-900 via-slate-700 via-20% to-slate-800 text-white 
           flex flex-row gap-4 justify-center items-center h-12
-          box-shadow z-50"
+          box-shadow z-50 lg:px-72"
       >
         <Link className="text-2xl font-bold ml-4 mr-auto select-none transition hover:text-red-500" href="/">
           <h1>Shared List</h1>
@@ -34,7 +34,7 @@ const MainLayout = (props: PropsWithChildren) => {
         </button>
       </header>
       <main className="relative flex min-h-screen flex-col items-center 
-        bg-gradient-to-b from-gray-900 via-red-500 via-20% to-gray-900"
+        bg-gradient-to-b from-gray-900 via-red-500 via-20% to-gray-900 lg:px-72"
       >
         <>
           {userPanelOpen &&
@@ -77,7 +77,7 @@ const UserPanel: React.FC<UserPanelProps> = ({ setOpen }) => {
       <div ref={bgRef} className="absolute w-full h-full bg-black/40 z-10 backdrop-blur-sm" />
       <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 
           flex flex-col justify-center items-center
-          w-3/4 z-20 animate-blur-in"
+          w-3/4 lg:w-1/3 z-20 animate-blur-in"
       >
         <div className="bg-gradient-to-br from-slate-700/70 to-slate-800/80 backdrop-blur 
           rounded-3xl flex flex-col py-4 px-8 gap-8 w-full text-center justify-center items-center">
