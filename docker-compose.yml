@@ -8,6 +8,8 @@ services:
       POSTGRES_PASSWORD: example
     ports:
       - 5432:5432
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
   adminer:
     image: adminer
     restart: always
@@ -22,9 +24,11 @@ services:
           NEXT_PUBLIC_CLIENTVAR: "clientvar"
       working_dir: /app
       ports:
-        - "3000:3000"
+        - "5628:3000"
       image: kareigu/shared-list:latest
       environment:
         - DATABASE_URL=postgresql://postgres:example@db:5432
+        - VERCEL_URL=list.karei.dev
+        - VERCEL=TRUE
       volumes:
         - .env:/app/.env
