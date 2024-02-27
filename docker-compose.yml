@@ -1,4 +1,4 @@
-version: '3.1'
+version: "3.1"
 
 services:
   db:
@@ -16,19 +16,18 @@ services:
     ports:
       - 8080:8080
   app:
-      platform: "linux/amd64"
-      build:
-        context: .
-        dockerfile: Dockerfile
-        args:
-          NEXT_PUBLIC_CLIENTVAR: "clientvar"
-      working_dir: /app
-      ports:
-        - "5628:3000"
-      image: kareigu/shared-list:latest
-      environment:
-        - DATABASE_URL=postgresql://postgres:example@db:5432
-        - VERCEL_URL=list.karei.dev
-        - VERCEL=TRUE
-      volumes:
-        - .env:/app/.env
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_CLIENTVAR: "clientvar"
+    working_dir: /app
+    ports:
+      - "5628:3000"
+    image: kareigu/shared-list:latest
+    environment:
+      - DATABASE_URL=postgresql://postgres:example@db:5432
+      - VERCEL_URL=list.karei.dev
+      - VERCEL=TRUE
+    volumes:
+      - .env:/app/.env
