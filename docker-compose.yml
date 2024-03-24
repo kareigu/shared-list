@@ -29,5 +29,8 @@ services:
       - DATABASE_URL=postgresql://postgres:example@db:5432
       - VERCEL_URL=list.karei.dev
       - VERCEL=TRUE
+    depends_on:
+      - db
+    restart: unless-stopped
     volumes:
       - .env:/app/.env
